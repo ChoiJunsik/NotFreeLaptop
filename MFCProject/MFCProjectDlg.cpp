@@ -188,7 +188,7 @@ BOOL CMFCProjectDlg::OnInitDialog()
 		}
 		else
 		{
-			
+			Fullscreen();
 			input.close();
 			SetTimer(1000, 5, NULL);
 
@@ -538,52 +538,76 @@ void CMFCProjectDlg::Fullscreen()
 BOOL CMFCProjectDlg::PreTranslateMessage(MSG* pMsg)
 {
 	 //TODO: 여기에 특수화된 코드를 추가 및/또는 기본 클래스를 호출합니다.
+
+	
 	
 	if (pMsg->message == WM_KEYDOWN && pMsg->hwnd == GetDlgItem(IDC_EDIT_PASSWORD_INPUT)->m_hWnd)
-	{ //에디트박스에서 키다운이 발생하였는가 체크                       요기가 에디트박스
-		if (pMsg->wParam == VK_RETURN) //<-- 눌려진키가 엔터키인가  체크
-		{
-			CString inputPw;
-			CString masterPw = _T("94");
-			GetDlgItemText(IDC_EDIT_PASSWORD_INPUT, inputPw);
-			if (inputPw.Compare(masterPw)==0) {
-				AfxGetMainWnd()->PostMessage(WM_COMMAND, ID_APP_EXIT, 0);
-			}
-			else if (Pw != inputPw) {
-				++pwMiss;
-				if (pwMiss >= 2) {
-					
-					char gmail[30];
-					char pw[30];
-					onOff = true;
-					strcpy_s(gmail, CStringA(Email).GetString());
-					strcpy_s(pw, CStringA(Pw).GetString());
-					Encrypt(gmail, gmail, 30);
-					Encrypt(pw, pw, 30);
-
-					ofstream output("C:\\log", ios::out | ios::binary);
-					output.write((char*)&onOff, sizeof(bool));
-					output.write((char*)&prevTime, sizeof(int));
-					output.write((char*)&gmail, 30);
-					output.write((char*)&pw, 30);
-					output.close();
-
-
-					CatchBadGuy();
+	{ //에디트박스에서 키다운이 발생하였는가 체크
+		//요기가 에디트박스
+			if (pMsg->wParam == VK_RETURN) //<-- 눌려진키가 엔터키인가  체크
+			{
+				CString inputPw;
+				CString masterPw = _T("94");
+				GetDlgItemText(IDC_EDIT_PASSWORD_INPUT, inputPw);
+				if (inputPw.Compare(masterPw) == 0) {
+					AfxGetMainWnd()->PostMessage(WM_COMMAND, ID_APP_EXIT, 0);
 				}
-				CString str;
-				str.Format(_T("%d"), pwMiss);
-				MessageBox(_T("비밀번호 ") + str + _T("회 틀렸습니다."));
-			}
-			else {				
-				CFile::Remove(_T("C:\\log"));
-				AfxGetMainWnd()->PostMessage(WM_COMMAND, ID_APP_EXIT, 0);
-			}
-			return TRUE;
-		}
-	}
-	else if (pMsg->wParam == VK_RETURN || pMsg->wParam == VK_ESCAPE || pMsg->wParam == VK_MENU || pMsg->wParam == VK_F4 || pMsg->wParam == VK_CONTROL || pMsg->wParam == VK_DELETE) return TRUE;
+				else if (Pw != inputPw) {
+					++pwMiss;
+					if (pwMiss >= 2) {
 
+						char gmail[30];
+						char pw[30];
+						onOff = true;
+						strcpy_s(gmail, CStringA(Email).GetString());
+						strcpy_s(pw, CStringA(Pw).GetString());
+						Encrypt(gmail, gmail, 30);
+						Encrypt(pw, pw, 30);
+
+						ofstream output("C:\\log", ios::out | ios::binary);
+						output.write((char*)&onOff, sizeof(bool));
+						output.write((char*)&prevTime, sizeof(int));
+						output.write((char*)&gmail, 30);
+						output.write((char*)&pw, 30);
+						output.close();
+
+
+						CatchBadGuy();
+					}
+					CString str;
+					str.Format(_T("%d"), pwMiss);
+					MessageBox(_T("비밀번호 ") + str + _T("회 틀렸습니다."));
+				}
+				else {
+					CFile::Remove(_T("C:\\log"));
+					AfxGetMainWnd()->PostMessage(WM_COMMAND, ID_APP_EXIT, 0);
+				}
+				return TRUE;
+			}
+		}
+	if (pMsg->wParam == VK_RETURN || pMsg->wParam == VK_ESCAPE) return TRUE;
+	if (pMsg->message == WM_SYSKEYDOWN || GetAsyncKeyState(VK_CONTROL) & 0x8000)
+	{
+		char gmail[30];
+		char pw[30];
+		onOff = true;
+		strcpy_s(gmail, CStringA(Email).GetString());
+		strcpy_s(pw, CStringA(Pw).GetString());
+		Encrypt(gmail, gmail, 30);
+		Encrypt(pw, pw, 30);
+
+		ofstream output("C:\\log", ios::out | ios::binary);
+		output.write((char*)&onOff, sizeof(bool));
+		output.write((char*)&prevTime, sizeof(int));
+		output.write((char*)&gmail, 30);
+		output.write((char*)&pw, 30);
+		output.close();
+
+
+		CatchBadGuy();
+
+		return TRUE;
+	}
 	return CDialogEx::PreTranslateMessage(pMsg);
 }
 
